@@ -10,17 +10,22 @@ import quetesRoutes from "./routes/quete.routes.js";
 import objetsRoutes from "./routes/objets.routes.js";
 import inventaireRoutes from "./routes/inventaire.routes.js";
 import dotenv from "dotenv";
+import cors from "cors";
 dotenv.config();
 
 const app = express();
 app.use(express.json());
-
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+  }),
+);
 app.get("/", (req: Request, res: Response) => {
   res.json({ message: "RPG" });
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Serveur sur http://localhost:${PORT}`));
+
 app.use("/auth", authRoutes);
 app.use("/monstres", monstresRoutes);
 app.use("/personnages", personnagesRoutes);
@@ -35,3 +40,5 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   console.error(err);
   res.status(500).json({ erreur: "Erreur interne du serveur" });
 });
+
+app.listen(PORT, () => console.log(`Serveur sur http://localhost:${PORT}`));

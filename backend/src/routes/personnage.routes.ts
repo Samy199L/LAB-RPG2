@@ -9,7 +9,7 @@ router.get("/", authentifier, async (req: Request, res: Response) => {
   const personnages = await prisma.personnage.findMany({
     where: { joueurId },
     orderBy: { nom: "asc" },
-    include: { inventaires: true, quetes: true },
+    include: { inventaires: true, quetesJoueur: true },
   });
   res.json({ personnages });
 });
@@ -31,7 +31,7 @@ router.post("/", authentifier, async (req: Request, res: Response) => {
   const { nom, classe } = req.body;
 
   if (!classe || !nom)
-    return res.status(400).json({ erreur: "attaque, pv et nom requis" });
+    return res.status(400).json({ erreur: "Classe et nom requis" });
 
   const personnage = await prisma.personnage.create({
     data: { nom, classe, joueurId },
@@ -42,26 +42,48 @@ router.post("/", authentifier, async (req: Request, res: Response) => {
 router.patch("/:id", authentifier, async (req: Request, res: Response) => {
   const joueurId = (req as any).user.sub;
   const id = Number(req.params.id);
-  try {
-    const personnage = await prisma.personnage.update({
-      where: { id, joueurId },
-      data: req.body,
+  const personnage = await prisma.personnage.findFirst({
+    where: {
+      id,
+      joueurId,
+    },
+  });
+
+  if (!personnage) {
+    return res.status(404).json({
+      erreur: "personnage introuvable",
     });
-    res.json(personnage);
-  } catch {
-    res.status(404).json({ erreur: "personnage introuvable" });
   }
+
+  const personnageModifie = await prisma.personnage.update({
+    where: { id },
+    data: req.body,
+  });
+
+  res.json(personnageModifie);
 });
 // DELETE
 router.delete("/:id", authentifier, async (req: Request, res: Response) => {
   const joueurId = (req as any).user.sub;
   const id = Number(req.params.id);
-  try {
-    await prisma.personnage.delete({ where: { id, joueurId } });
-    res.status(204).end();
-  } catch {
-    res.status(404).json({ erreur: "personnage introuvable" });
+  const personnage = await prisma.personnage.findFirst({
+    where: {
+      id,
+      joueurId,
+    },
+  });
+
+  if (!personnage) {
+    return res.status(404).json({
+      erreur: "personnage introuvable",
+    });
   }
+
+  await prisma.personnage.delete({
+    where: { id },
+  });
+
+  res.status(204).end();
 });
 
 export default router;

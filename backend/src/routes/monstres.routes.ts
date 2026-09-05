@@ -126,7 +126,7 @@ router.post("/importer", authentifier, async (req: Request, res: Response) => {
     if (axios.isAxiosError(e)) {
       return res
         .status(502)
-        .json({ erreur: "API The Space Devs injoignable (ou quota atteint)" });
+        .json({ erreur: "API injoignable (ou quota atteint)" });
     }
     res.status(500).json({ erreur: "Erreur lors de l’import" });
   }
